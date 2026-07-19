@@ -1,0 +1,14 @@
+{
+  "name": "nexusflow",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "cd apps/api && venv\\Scripts\\activate && uvicorn main:app --reload",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\""
+  }
+}
