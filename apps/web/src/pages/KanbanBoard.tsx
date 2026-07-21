@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MoreHorizontal, Plus, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { MoreHorizontal, Plus, Search, Filter, AlertCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
@@ -25,23 +25,33 @@ export const KanbanBoard: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const [fetchedCols, fetchedTickets] = await Promise.all([
           api.getColumns(),
           api.getTickets()
         ]);
-        setColumns(fetchedCols.filter((c: any) => c.project_id === projectId || !projectId));
+        if (cancelled) return;
+        setColumns(fetchedCols.filter((c: Column) => c.project_id === projectId || !projectId));
         setTickets(fetchedTickets);
       } catch (err) {
-        console.error("API Error, make sure backend is running:", err);
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load board data. Is the backend running?');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchData();
+
+    return () => { cancelled = true; controller.abort(); };
   }, [projectId]);
 
   const getPriorityColor = (priority: string) => {
@@ -54,13 +64,14 @@ export const KanbanBoard: React.FC = () => {
     }
   };
 
-  const onDragEnd = async (result: DropResult) => {
+  const onDragEnd = useCallback(async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    // Optimistic UI update
+    const previousTickets = [...tickets];
+
     const updatedTickets = tickets.map(ticket => {
       if (ticket.id === draggableId) {
         return { ...ticket, columnId: destination.droppableId };
@@ -69,15 +80,33 @@ export const KanbanBoard: React.FC = () => {
     });
     setTickets(updatedTickets);
 
-    // Backend update
     try {
       await api.moveTicket(draggableId, destination.droppableId);
     } catch (err) {
+      setTickets(previousTickets);
       console.error("Failed to move ticket on server:", err);
     }
-  };
+  }, [tickets]);
 
   if (loading) return <div className="p-8 text-muted-foreground animate-pulse">Loading board data...</div>;
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <AlertCircle size={48} className="text-destructive mx-auto" />
+          <h3 className="text-lg font-semibold">Failed to Load Board</h3>
+          <p className="text-muted-foreground max-w-md">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col space-y-4 animate-in fade-in duration-500">

@@ -10,10 +10,10 @@ export const MOCK_PROJECTS = [
 ];
 
 export const MOCK_COLUMNS = [
-  { id: 'c1', title: 'To Do' },
-  { id: 'c2', title: 'In Progress' },
-  { id: 'c3', title: 'In Review' },
-  { id: 'c4', title: 'Done' }
+  { id: 'c1', title: 'To Do', project_id: 'p1' },
+  { id: 'c2', title: 'In Progress', project_id: 'p1' },
+  { id: 'c3', title: 'In Review', project_id: 'p1' },
+  { id: 'c4', title: 'Done', project_id: 'p1' }
 ];
 
 export const MOCK_TICKETS = [

@@ -1,18 +1,21 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MOCK_TICKETS } from '@/lib/mock-data';
+import { MOCK_TICKETS, MOCK_COLUMNS } from '@/lib/mock-data';
 import { ArrowLeft, Clock, MessageSquare, Paperclip, Check } from 'lucide-react';
 
 export const TicketView: React.FC = () => {
   const { ticketId } = useParams();
-  const ticket = MOCK_TICKETS.find(t => t.id === ticketId) || MOCK_TICKETS[0];
+  const ticket = MOCK_TICKETS.find(t => t.id === ticketId) ?? MOCK_TICKETS[0]!;
+
+  const column = MOCK_COLUMNS.find(c => c.id === ticket.columnId);
+  const projectId = column?.project_id || '';
 
   return (
     <div className="h-full flex flex-col md:flex-row gap-6 animate-in fade-in duration-500">
       {/* Main Content */}
       <div className="flex-1 flex flex-col space-y-6">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <Link to={`/projects/${ticket.id}`} className="hover:text-primary transition-colors flex items-center gap-1">
+          <Link to={projectId ? `/projects/${projectId}` : '/projects'} className="hover:text-primary transition-colors flex items-center gap-1">
             <ArrowLeft size={16} /> Back to Board
           </Link>
           <span>/</span>

@@ -1,47 +1,55 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
+from datetime import datetime
+
 
 class TicketBase(BaseModel):
-    title: str
-    priority: str
-    storyPoints: int
-    assignee: str
-    columnId: str
+    title: str = Field(..., min_length=1, max_length=255)
+    priority: str = Field(..., pattern=r"^(Low|Medium|High|Highest)$")
+    storyPoints: int = Field(default=0, ge=0, le=100)
+    assignee: str = Field(default="Unassigned", max_length=255)
+    columnId: str = Field(..., max_length=36)
 
-class TicketCreate(TicketBase):
-    id: str
 
 class TicketResponse(TicketBase):
     id: str
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TicketMoveRequest(BaseModel):
+    column_id: str = Field(..., max_length=36, description="Target column ID")
+
 
 class ColumnBase(BaseModel):
-    title: str
-    project_id: str
+    title: str = Field(..., min_length=1, max_length=255)
+    project_id: str = Field(..., max_length=36)
+
 
 class ColumnResponse(ColumnBase):
     id: str
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ProjectBase(BaseModel):
-    name: str
-    description: str
-    status: str
-    ticketCount: int
-    workspace_id: str
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = Field(default="", max_length=1000)
+    status: str = Field(..., pattern=r"^(Active|Planning|Paused|Completed)$")
+    ticketCount: int = Field(default=0, ge=0)
+    workspace_id: str = Field(..., max_length=36)
+
 
 class ProjectResponse(ProjectBase):
     id: str
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class WorkspaceBase(BaseModel):
-    name: str
-    role: str
+    name: str = Field(..., min_length=1, max_length=255)
+    role: str = Field(..., max_length=50)
+
 
 class WorkspaceResponse(WorkspaceBase):
     id: str
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

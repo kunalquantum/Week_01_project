@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { MOCK_WORKSPACES } from '@/lib/mock-data';
 
 export const Sidebar: React.FC = () => {
-  const [activeWorkspace, setActiveWorkspace] = useState(MOCK_WORKSPACES[0]);
+  const [activeWorkspace, setActiveWorkspace] = useState(MOCK_WORKSPACES[0]!);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (

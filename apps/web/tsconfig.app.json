@@ -17,8 +17,13 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
+    "ignoreDeprecations": "6.0",
     "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Type Checking */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
 
     /* Linting */
     "noUnusedLocals": true,
